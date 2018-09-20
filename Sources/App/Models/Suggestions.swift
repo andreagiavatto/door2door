@@ -1,5 +1,5 @@
 //
-//  Suggestion.swift
+//  Suggestions.swift
 //  App
 //
 //  Created by Andrea on 20/09/2018.
@@ -9,10 +9,10 @@ import Vapor
 import Foundation
 
 struct Suggestions: Content {
-    var suggestions: [Suggestion]
+    var suggestions: [Place]
 }
 
-struct Suggestion: Content {
+struct Place: Content {
     var name: String
     var place_id: String
 }
