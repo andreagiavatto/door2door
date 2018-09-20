@@ -11,27 +11,36 @@ import Vapor
 final class SuggestionController {
 
     func list(_ req: Request) throws -> Future<Suggestions> {
+        guard let query = req.query[String.self, at: "text"], query.count >= 3 else {
+            throw Abort(.badRequest)
+        }
         let promise = req.eventLoop.newPromise(Suggestions.self)
-        let s1 = Suggestion(name: "Chancery Lane", place_id: "42")
-        let s2 = Suggestion(name: "WeWork", place_id: "123")
-        let suggestions = Suggestions(suggestions: [s1, s2])
-        promise.succeed(result: suggestions)
-        return promise.futureResult
-        /// Fails the associated future
-//        promiseString.fail(error: ...)
+        
+        
+        let googleMapsResponse = try req.make(Client.self).get("https://maps.googleapis.com/maps/api/place/autocomplete/json") { get in
+            try get.query.encode([
+                "key": "AIzaSyCDLXi_SdKlRfW09CzVVT7dbNLHUj2IgsA",
+                "inputtype": "textquery",
+                "input": query
+                ])
+        }
+        
+        return googleMapsResponse.flatMap(to: Suggestions.self) { response in
+            
+//            print(response)
+            return try response.content.decode(PredictionsResponse.self).flatMap(to: Suggestions.self) { predictionsResponse in
+            
+                var sugg = [Suggestion]()
+                for element in predictionsResponse.predictions {
+                    if let name = element.description, let placeId = element.placeId {
+                        let s1 = Suggestion(name: name, place_id: placeId)
+                        sugg.append(s1)
+                    }
+                }
+                let s = Suggestions(suggestions: sugg)
+                promise.succeed(result: s)
+                return promise.futureResult
+            }
+        }
     }
-    //
-    //    /// Saves a decoded `Todo` to the database.
-    //    func create(_ req: Request) throws -> Future<Todo> {
-    //        return try req.content.decode(Todo.self).flatMap { todo in
-    //            return todo.save(on: req)
-    //        }
-    //    }
-    //
-    //    /// Deletes a parameterized `Todo`.
-    //    func delete(_ req: Request) throws -> Future<HTTPStatus> {
-    //        return try req.parameters.next(Todo.self).flatMap { todo in
-    //            return todo.delete(on: req)
-    //        }.transform(to: .ok)
-    //    }
 }
