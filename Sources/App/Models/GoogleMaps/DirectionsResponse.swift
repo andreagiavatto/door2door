@@ -1,4 +1,4 @@
-//
+﻿//
 //  Copyright © 2018 Company. All rights reserved.
 //
 
@@ -81,56 +81,83 @@ public struct DirectionsResponse {
                     public let lng: Double?
                 }
 
-                public struct Polyline {
-                    public let points: String?
-                }
-
                 public struct StartLocation {
                     public let lat: Double?
                     public let lng: Double?
                 }
 
-                public struct StepsElement {
+                public struct TransitDetails {
 
-                    public struct Distance {
+                    public struct ArrivalStop {
+
+                        public struct Location {
+                            public let lat: Double?
+                            public let lng: Double?
+                        }
+
+                        public let location: Location?
+                        public let name: String?
+                    }
+
+                    public struct ArrivalTime {
                         public let text: String?
+                        public let timeZone: String?
                         public let value: Int?
                     }
 
-                    public struct Duration {
+                    public struct DepartureStop {
+
+                        public struct Location {
+                            public let lat: Double?
+                            public let lng: Double?
+                        }
+
+                        public let location: Location?
+                        public let name: String?
+                    }
+
+                    public struct DepartureTime {
                         public let text: String?
+                        public let timeZone: String?
                         public let value: Int?
                     }
 
-                    public struct EndLocation {
-                        public let lat: Double?
-                        public let lng: Double?
+                    public struct Line {
+
+                        public struct AgenciesElement {
+                            public let name: String?
+                            public let url: String?
+                        }
+
+                        public struct Vehicle {
+                            public let icon: String?
+                            public let localIcon: String?
+                            public let name: String?
+                            public let type: String?
+                        }
+
+                        public let agencies: [AgenciesElement]
+                        public let color: String?
+                        public let name: String?
+                        public let textColor: String?
+                        public let vehicle: Vehicle?
                     }
 
-                    public struct Polyline {
-                        public let points: String?
-                    }
-
-                    public struct StartLocation {
-                        public let lat: Double?
-                        public let lng: Double?
-                    }
-
-                    public let distance: Distance?
-                    public let duration: Duration?
-                    public let endLocation: EndLocation?
-                    public let polyline: Polyline?
-                    public let startLocation: StartLocation?
-                    public let travelMode: String?
+                    public let arrivalStop: ArrivalStop?
+                    public let arrivalTime: ArrivalTime?
+                    public let departureStop: DepartureStop?
+                    public let departureTime: DepartureTime?
+                    public let headsign: String?
+                    public let line: Line?
+                    public let numStops: Int?
                 }
 
                 public let distance: Distance?
                 public let duration: Duration?
                 public let endLocation: EndLocation?
                 public let htmlInstructions: String?
-                public let polyline: Polyline?
                 public let startLocation: StartLocation?
-                public let steps: [StepsElement]
+                public let transitDetails: TransitDetails?
                 public let travelMode: String?
             }
 
@@ -145,16 +172,9 @@ public struct DirectionsResponse {
             public let steps: [StepsElement]
         }
 
-        public struct OverviewPolyline {
-            public let points: String?
-        }
-        
         public let bounds: Bounds?
         public let copyrights: String?
         public let legs: [LegsElement]
-        public let overviewPolyline: OverviewPolyline?
-        public let summary: String?
-        public let warnings: [String]
     }
 
     public let geocodedWaypoints: [GeocodedWaypointsElement]
@@ -218,10 +238,6 @@ extension DirectionsResponse.RoutesElement: Codable {
         case bounds
         case copyrights
         case legs
-        case overviewPolyline = "overview_polyline"
-        case summary
-        case warnings
-        case waypointOrder = "waypoint_order"
     }
     
     public init(from decoder: Decoder) throws {
@@ -229,9 +245,6 @@ extension DirectionsResponse.RoutesElement: Codable {
         bounds = try container.decodeIfPresent(Bounds.self, forKey: .bounds)
         copyrights = try container.decodeIfPresent(String.self, forKey: .copyrights)
         legs = try container.decodeIfPresent([LegsElement].self, forKey: .legs) ?? []
-        overviewPolyline = try container.decodeIfPresent(OverviewPolyline.self, forKey: .overviewPolyline)
-        summary = try container.decodeIfPresent(String.self, forKey: .summary)
-        warnings = try container.decodeIfPresent([String].self, forKey: .warnings) ?? []
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -239,9 +252,6 @@ extension DirectionsResponse.RoutesElement: Codable {
         try container.encodeIfPresent(bounds, forKey: .bounds)
         try container.encodeIfPresent(copyrights, forKey: .copyrights)
         try container.encode(legs, forKey: .legs)
-        try container.encodeIfPresent(overviewPolyline, forKey: .overviewPolyline)
-        try container.encodeIfPresent(summary, forKey: .summary)
-        try container.encode(warnings, forKey: .warnings)
     }
 }
         
@@ -317,8 +327,6 @@ extension DirectionsResponse.RoutesElement.LegsElement: Codable {
         case startAddress = "start_address"
         case startLocation = "start_location"
         case steps
-        case trafficSpeedEntry = "traffic_speed_entry"
-        case viaWaypoint = "via_waypoint"
     }
     
     public init(from decoder: Decoder) throws {
@@ -481,9 +489,8 @@ extension DirectionsResponse.RoutesElement.LegsElement.StepsElement: Codable {
         case duration
         case endLocation = "end_location"
         case htmlInstructions = "html_instructions"
-        case polyline
         case startLocation = "start_location"
-        case steps
+        case transitDetails = "transit_details"
         case travelMode = "travel_mode"
     }
     
@@ -493,9 +500,8 @@ extension DirectionsResponse.RoutesElement.LegsElement.StepsElement: Codable {
         duration = try container.decodeIfPresent(Duration.self, forKey: .duration)
         endLocation = try container.decodeIfPresent(EndLocation.self, forKey: .endLocation)
         htmlInstructions = try container.decodeIfPresent(String.self, forKey: .htmlInstructions)
-        polyline = try container.decodeIfPresent(Polyline.self, forKey: .polyline)
         startLocation = try container.decodeIfPresent(StartLocation.self, forKey: .startLocation)
-        steps = try container.decodeIfPresent([StepsElement].self, forKey: .steps) ?? []
+        transitDetails = try container.decodeIfPresent(TransitDetails.self, forKey: .transitDetails)
         travelMode = try container.decodeIfPresent(String.self, forKey: .travelMode)
     }
 
@@ -505,9 +511,8 @@ extension DirectionsResponse.RoutesElement.LegsElement.StepsElement: Codable {
         try container.encodeIfPresent(duration, forKey: .duration)
         try container.encodeIfPresent(endLocation, forKey: .endLocation)
         try container.encodeIfPresent(htmlInstructions, forKey: .htmlInstructions)
-        try container.encodeIfPresent(polyline, forKey: .polyline)
         try container.encodeIfPresent(startLocation, forKey: .startLocation)
-        try container.encode(steps, forKey: .steps)
+        try container.encodeIfPresent(transitDetails, forKey: .transitDetails)
         try container.encodeIfPresent(travelMode, forKey: .travelMode)
     }
 }
@@ -572,23 +577,6 @@ extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.EndLocation:
     }
 }
         
-extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.Polyline: Codable {
-        
-    enum CodingKeys: String, CodingKey {
-        case points
-    }
-    
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        points = try container.decodeIfPresent(String.self, forKey: .points)
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encodeIfPresent(points, forKey: .points)
-    }
-}
-        
 extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.StartLocation: Codable {
         
     enum CodingKeys: String, CodingKey {
@@ -609,79 +597,62 @@ extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.StartLocatio
     }
 }
         
-extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.StepsElement: Codable {
+extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.TransitDetails: Codable {
         
     enum CodingKeys: String, CodingKey {
-        case distance
-        case duration
-        case endLocation = "end_location"
-        case polyline
-        case startLocation = "start_location"
-        case travelMode = "travel_mode"
+        case arrivalStop = "arrival_stop"
+        case arrivalTime = "arrival_time"
+        case departureStop = "departure_stop"
+        case departureTime = "departure_time"
+        case headsign
+        case line
+        case numStops = "num_stops"
     }
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        distance = try container.decodeIfPresent(Distance.self, forKey: .distance)
-        duration = try container.decodeIfPresent(Duration.self, forKey: .duration)
-        endLocation = try container.decodeIfPresent(EndLocation.self, forKey: .endLocation)
-        polyline = try container.decodeIfPresent(Polyline.self, forKey: .polyline)
-        startLocation = try container.decodeIfPresent(StartLocation.self, forKey: .startLocation)
-        travelMode = try container.decodeIfPresent(String.self, forKey: .travelMode)
+        arrivalStop = try container.decodeIfPresent(ArrivalStop.self, forKey: .arrivalStop)
+        arrivalTime = try container.decodeIfPresent(ArrivalTime.self, forKey: .arrivalTime)
+        departureStop = try container.decodeIfPresent(DepartureStop.self, forKey: .departureStop)
+        departureTime = try container.decodeIfPresent(DepartureTime.self, forKey: .departureTime)
+        headsign = try container.decodeIfPresent(String.self, forKey: .headsign)
+        line = try container.decodeIfPresent(Line.self, forKey: .line)
+        numStops = try container.decodeIfPresent(Int.self, forKey: .numStops)
     }
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encodeIfPresent(distance, forKey: .distance)
-        try container.encodeIfPresent(duration, forKey: .duration)
-        try container.encodeIfPresent(endLocation, forKey: .endLocation)
-        try container.encodeIfPresent(polyline, forKey: .polyline)
-        try container.encodeIfPresent(startLocation, forKey: .startLocation)
-        try container.encodeIfPresent(travelMode, forKey: .travelMode)
+        try container.encodeIfPresent(arrivalStop, forKey: .arrivalStop)
+        try container.encodeIfPresent(arrivalTime, forKey: .arrivalTime)
+        try container.encodeIfPresent(departureStop, forKey: .departureStop)
+        try container.encodeIfPresent(departureTime, forKey: .departureTime)
+        try container.encodeIfPresent(headsign, forKey: .headsign)
+        try container.encodeIfPresent(line, forKey: .line)
+        try container.encodeIfPresent(numStops, forKey: .numStops)
     }
 }
         
-extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.StepsElement.Distance: Codable {
+extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.TransitDetails.ArrivalStop: Codable {
         
     enum CodingKeys: String, CodingKey {
-        case text
-        case value
+        case location
+        case name
     }
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        text = try container.decodeIfPresent(String.self, forKey: .text)
-        value = try container.decodeIfPresent(Int.self, forKey: .value)
+        location = try container.decodeIfPresent(Location.self, forKey: .location)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
     }
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encodeIfPresent(text, forKey: .text)
-        try container.encodeIfPresent(value, forKey: .value)
+        try container.encodeIfPresent(location, forKey: .location)
+        try container.encodeIfPresent(name, forKey: .name)
     }
 }
         
-extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.StepsElement.Duration: Codable {
-        
-    enum CodingKeys: String, CodingKey {
-        case text
-        case value
-    }
-    
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        text = try container.decodeIfPresent(String.self, forKey: .text)
-        value = try container.decodeIfPresent(Int.self, forKey: .value)
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encodeIfPresent(text, forKey: .text)
-        try container.encodeIfPresent(value, forKey: .value)
-    }
-}
-        
-extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.StepsElement.EndLocation: Codable {
+extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.TransitDetails.ArrivalStop.Location: Codable {
         
     enum CodingKeys: String, CodingKey {
         case lat
@@ -701,24 +672,50 @@ extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.StepsElement
     }
 }
         
-extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.StepsElement.Polyline: Codable {
+extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.TransitDetails.ArrivalTime: Codable {
         
     enum CodingKeys: String, CodingKey {
-        case points
+        case text
+        case timeZone = "time_zone"
+        case value
     }
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        points = try container.decodeIfPresent(String.self, forKey: .points)
+        text = try container.decodeIfPresent(String.self, forKey: .text)
+        timeZone = try container.decodeIfPresent(String.self, forKey: .timeZone)
+        value = try container.decodeIfPresent(Int.self, forKey: .value)
     }
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encodeIfPresent(points, forKey: .points)
+        try container.encodeIfPresent(text, forKey: .text)
+        try container.encodeIfPresent(timeZone, forKey: .timeZone)
+        try container.encodeIfPresent(value, forKey: .value)
     }
 }
         
-extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.StepsElement.StartLocation: Codable {
+extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.TransitDetails.DepartureStop: Codable {
+        
+    enum CodingKeys: String, CodingKey {
+        case location
+        case name
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        location = try container.decodeIfPresent(Location.self, forKey: .location)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(location, forKey: .location)
+        try container.encodeIfPresent(name, forKey: .name)
+    }
+}
+        
+extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.TransitDetails.DepartureStop.Location: Codable {
         
     enum CodingKeys: String, CodingKey {
         case lat
@@ -738,19 +735,100 @@ extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.StepsElement
     }
 }
         
-extension DirectionsResponse.RoutesElement.OverviewPolyline: Codable {
+extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.TransitDetails.DepartureTime: Codable {
         
     enum CodingKeys: String, CodingKey {
-        case points
+        case text
+        case timeZone = "time_zone"
+        case value
     }
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        points = try container.decodeIfPresent(String.self, forKey: .points)
+        text = try container.decodeIfPresent(String.self, forKey: .text)
+        timeZone = try container.decodeIfPresent(String.self, forKey: .timeZone)
+        value = try container.decodeIfPresent(Int.self, forKey: .value)
     }
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encodeIfPresent(points, forKey: .points)
+        try container.encodeIfPresent(text, forKey: .text)
+        try container.encodeIfPresent(timeZone, forKey: .timeZone)
+        try container.encodeIfPresent(value, forKey: .value)
+    }
+}
+        
+extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.TransitDetails.Line: Codable {
+        
+    enum CodingKeys: String, CodingKey {
+        case agencies
+        case color
+        case name
+        case textColor = "text_color"
+        case vehicle
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        agencies = try container.decodeIfPresent([AgenciesElement].self, forKey: .agencies) ?? []
+        color = try container.decodeIfPresent(String.self, forKey: .color)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        textColor = try container.decodeIfPresent(String.self, forKey: .textColor)
+        vehicle = try container.decodeIfPresent(Vehicle.self, forKey: .vehicle)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(agencies, forKey: .agencies)
+        try container.encodeIfPresent(color, forKey: .color)
+        try container.encodeIfPresent(name, forKey: .name)
+        try container.encodeIfPresent(textColor, forKey: .textColor)
+        try container.encodeIfPresent(vehicle, forKey: .vehicle)
+    }
+}
+        
+extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.TransitDetails.Line.AgenciesElement: Codable {
+        
+    enum CodingKeys: String, CodingKey {
+        case name
+        case url
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        url = try container.decodeIfPresent(String.self, forKey: .url)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(name, forKey: .name)
+        try container.encodeIfPresent(url, forKey: .url)
+    }
+}
+        
+extension DirectionsResponse.RoutesElement.LegsElement.StepsElement.TransitDetails.Line.Vehicle: Codable {
+        
+    enum CodingKeys: String, CodingKey {
+        case icon
+        case localIcon = "local_icon"
+        case name
+        case type
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        icon = try container.decodeIfPresent(String.self, forKey: .icon)
+        localIcon = try container.decodeIfPresent(String.self, forKey: .localIcon)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        type = try container.decodeIfPresent(String.self, forKey: .type)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(icon, forKey: .icon)
+        try container.encodeIfPresent(localIcon, forKey: .localIcon)
+        try container.encodeIfPresent(name, forKey: .name)
+        try container.encodeIfPresent(type, forKey: .type)
     }
 }

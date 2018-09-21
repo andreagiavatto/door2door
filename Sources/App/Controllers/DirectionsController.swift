@@ -34,18 +34,27 @@ final class DirectionsController {
         
         return googleMapsResponse.flatMap(to: Directions.self) { response in
             
+            print(response)
+            
             return try response.content.decode(DirectionsResponse.self).flatMap(to: Directions.self) { directionsResponse in
                 
-                print(directionsResponse)
+//                print(directionsResponse)
+                
                 var start_address = ""
                 var end_address = ""
-                var steps = [DirectionsResponse.RoutesElement.LegsElement]()
-                if let legs = directionsResponse.routes.first?.legs {
-                    steps.append(contentsOf: legs)
-                    start_address = legs.first?.startAddress ?? ""
-                    end_address = legs.first?.endAddress ?? ""
+                var departure_time = ""
+                var arrival_time = ""
+                var total_duration = ""
+                var steps = [DirectionsResponse.RoutesElement.LegsElement.StepsElement]()
+                if let leg = directionsResponse.routes.first?.legs.first {
+                    start_address = leg.startAddress ?? ""
+                    end_address = leg.endAddress ?? ""
+                    departure_time = leg.departureTime?.text ?? ""
+                    arrival_time = leg.arrivalTime?.text ?? ""
+                    total_duration = leg.duration?.text ?? ""
+                    steps.append(contentsOf: leg.steps)
                 }
-                let directions = Directions(start_address: start_address, end_address: end_address, steps: steps)
+                let directions = Directions(start_address: start_address, departure_time: departure_time, end_address: end_address, arrival_time: arrival_time, total_duration: total_duration, steps: steps)
                 promise.succeed(result: directions)
                 return promise.futureResult
             }

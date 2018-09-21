@@ -10,7 +10,10 @@ import Foundation
 
 struct Directions: Content {
     var start_address: String
+    var departure_time: String
     var end_address: String
-    var steps: [DirectionsResponse.RoutesElement.LegsElement]
+    var arrival_time: String
+    var total_duration: String
+    var steps: [DirectionsResponse.RoutesElement.LegsElement.StepsElement]
 }
 
